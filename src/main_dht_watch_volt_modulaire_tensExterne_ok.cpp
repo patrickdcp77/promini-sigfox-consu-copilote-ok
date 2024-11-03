@@ -8,6 +8,9 @@ donc 1 octet suffirait pour chaque mesure
 on garde les 2 octets pour l'instant
 reste à voir la tension de la batterie
 
+mesure tension via référence interne OK
+essai avec mesure directe de A0 après avoir mis A1 à HIGH (Vcc qui doit être contrôlé)
+
 */
 
 #include <Arduino.h>
@@ -26,14 +29,19 @@ reste à voir la tension de la batterie
 
 DHT dht(DHTPIN, DHTTYPE);
 
-const bool debug =false;// true; // Définir à true pour activer le débogage, false pour désactiver
+const bool debug = false;//true; // Définir à true pour activer le débogage, false pour désactiver
 volatile bool shouldMeasure = false;
 volatile uint16_t wakeUpCounter = 0;
-const uint16_t wakeUpLimit = 30; // 5 * 8 secondes = 40 secondes
+const uint16_t wakeUpLimit = 30; // 2 * 8 secondes = 16 secondes
 
 int16_t humidity;
 int16_t temperature;
-uint16_t batteryVoltageMV;
+uint16_t tensionSourceMV;
+float tensionSource; // Déclarer tensionSource comme variable globale
+
+// Résistances du pont diviseur
+const float R1 = 47000.0;  // Résistance entre A0 et Vcc
+const float R2 = 10000.0;  // Résistance entre A0 et la masse
 
 void resetModule() {
   digitalWrite(RESET_PIN, LOW);
@@ -72,34 +80,29 @@ void measureDHT() {
   digitalWrite(DHT_POWER_PIN, LOW);
 }
 
-void measureVoltage() {
-  // Configurer l'ADC pour utiliser la référence de tension interne de 1,1V
-  analogReference(INTERNAL);
-  delay(10); // Attendre que la référence de tension se stabilise
+void measureA1Voltage() {
+
+  pinMode(A1, OUTPUT);       // Configurer A1 en sortie
+  digitalWrite(A1, HIGH);    // Mettre A1 au niveau haut (5V)
+  analogReference(INTERNAL); // Utiliser la référence interne de 1,1 V
+ 
 
   // Activer l'ADC
   ADCSRA |= (1 << ADEN);
-
-  // Lire la valeur de l'ADC
-  int sensorValue = analogRead(VOLTAGE_PIN);
-
-  // Désactiver l'ADC
+  // Lire la valeur de l'ADC sur la broche A1
+  int valeurADC = analogRead(A0); // Lire la tension sur A0
+   // Désactiver l'ADC
   ADCSRA &= ~(1 << ADEN);
 
-  // Convertir la valeur de l'ADC en tension
-  float voltage = sensorValue * (1.1 / 1023.0);
-  float batteryVoltage = voltage * ((47.0 + 10.0) / 10.0); // Ajuster la tension en fonction du diviseur de tension
-  batteryVoltageMV = batteryVoltage * 1000; // Convertir la tension en millivolts
+  float tensionA0 = (valeurADC * 1.1) / 1023.0; // Tension sur A0 en volts
+  float tensionSource = tensionA0 * ((R1 + R2) / R2); // Calcul de la tension d'entrée d'A1
+  tensionSourceMV = (uint16_t)(tensionSource * 1000); // Convertir la tension en millivolts et en entier
 
   if (debug) {
-    Serial.print("Valeur brute du capteur: ");
-    Serial.println(sensorValue);
-    Serial.print("Tension mesurée: ");
-    Serial.println(voltage);
-    Serial.print("Tension de la batterie (V): ");
-    Serial.println(batteryVoltage);
-    Serial.print("Tension de la batterie (mV): ");
-    Serial.println(batteryVoltageMV);
+    Serial.print("Valeur brute du capteur A1: ");
+    Serial.println(tensionA0);
+    Serial.print("Tension d'A1 (estimée) : ");
+    Serial.println(tensionSourceMV);
   }
 }
 
@@ -108,8 +111,8 @@ void createFrame(uint8_t* frame) {
   frame[1] = temperature & 0xFF;
   frame[2] = (humidity >> 8) & 0xFF;
   frame[3] = humidity & 0xFF;
-  frame[4] = (batteryVoltageMV >> 8) & 0xFF;
-  frame[5] = batteryVoltageMV & 0xFF;
+  frame[4] = (tensionSourceMV >> 8) & 0xFF;
+  frame[5] = tensionSourceMV & 0xFF;
 
   if (debug) {
     // Afficher la trame créée pour le débogage
@@ -163,8 +166,8 @@ void setup() {
   // Mesurer la température et l'humidité
   measureDHT();
 
-  // Mesurer la tension
-  measureVoltage();
+  // Mesurer la tension sur A1
+  measureA1Voltage();
 
   // Créer la trame
   uint8_t frame[6];
@@ -180,10 +183,6 @@ void setup() {
   WDTCSR = (1 << WDP3) | (1 << WDP0); // Configurer le watchdog pour une période de 8 secondes
   WDTCSR |= (1 << WDIE); // Activer l'interruption du watchdog
   sei(); // Activer les interruptions
-
-  // Mettre le processeur en veille
-  //set_sleep_mode(SLEEP_MODE_PWR_DOWN);
-  //sleep_enable();
 }
 
 void loop() {
@@ -200,8 +199,8 @@ void loop() {
     // Mesurer la température et l'humidité
     measureDHT();
 
-    // Mesurer la tension
-    measureVoltage();
+    // Mesurer la tension sur A1
+    measureA1Voltage();
 
     // Créer la trame
     uint8_t frame[6];
