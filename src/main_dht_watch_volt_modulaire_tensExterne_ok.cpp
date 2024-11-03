@@ -1,15 +1,23 @@
 /*
 dht ok
 trame reçue ok
-12345678 et mesures au début 
+
+12345678 et mesures au début ok 
+
 watchdog toute les 8s 112 fois puis mesures OK
-les mesures sont arrondies à la partie entière
+
+les mesures sont arrondies à la partie entière ok
 donc 1 octet suffirait pour chaque mesure
 on garde les 2 octets pour l'instant
-reste à voir la tension de la batterie
+
+la tension de la batterie sur 2 octets car en mV ok
 
 mesure tension via référence interne OK
 essai avec mesure directe de A0 après avoir mis A1 à HIGH (Vcc qui doit être contrôlé)
+
+trame envoyée 2 oct temp 2 oct hum 2 oct tension batterie  ok
+
+mise en veille durant 1/4h par cycle de 
 
 */
 
@@ -32,8 +40,7 @@ DHT dht(DHTPIN, DHTTYPE);
 const bool debug = false;//true; // Définir à true pour activer le débogage, false pour désactiver
 volatile bool shouldMeasure = false;
 volatile uint16_t wakeUpCounter = 0;
-const uint16_t wakeUpLimit = 30; // 2 * 8 secondes = 16 secondes
-
+const uint16_t wakeUpLimit = 112; /// 112 * 8 secondes = 1/4h
 int16_t humidity;
 int16_t temperature;
 uint16_t tensionSourceMV;
