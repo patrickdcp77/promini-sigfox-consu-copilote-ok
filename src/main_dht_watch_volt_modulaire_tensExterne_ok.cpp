@@ -17,7 +17,7 @@ essai avec mesure directe de A0 après avoir mis A1 à HIGH (Vcc qui doit être 
 
 trame envoyée 2 oct temp 2 oct hum 2 oct tension batterie  ok
 
-mise en veille durant 1/4h par cycle de 
+mise en veille durant 1/4h par cycle
 
 */
 
