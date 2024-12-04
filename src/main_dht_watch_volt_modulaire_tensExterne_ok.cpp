@@ -1,5 +1,6 @@
 /*
 dht ok
+
 trame reçue ok
 
 12345678 et mesures au début ok 
@@ -7,12 +8,15 @@ trame reçue ok
 watchdog toute les 8s 112 fois puis mesures OK
 
 les mesures sont arrondies à la partie entière ok
+
 donc 1 octet suffirait pour chaque mesure
+
 on garde les 2 octets pour l'instant
 
 la tension de la batterie sur 2 octets car en mV ok
 
 mesure tension via référence interne OK
+
 essai avec mesure directe de A0 après avoir mis A1 à HIGH (Vcc qui doit être contrôlé)
 
 trame envoyée 2 oct temp 2 oct hum 2 oct tension batterie  ok
@@ -49,7 +53,11 @@ float tensionSource; // Déclarer tensionSource comme variable globale
 // Résistances du pont diviseur
 const float R1 = 47000.0;  // Résistance entre A0 et Vcc
 const float R2 = 10000.0;  // Résistance entre A0 et la masse
-
+void setup() {
+  Serial.begin(9600);
+  Serial.println("Setup started");
+  // Other setup code...
+}
 void resetModule() {
   digitalWrite(RESET_PIN, LOW);
   delay(100); // Attendre que le module soit réinitialisé
