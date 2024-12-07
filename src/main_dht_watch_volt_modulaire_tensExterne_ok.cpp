@@ -53,11 +53,7 @@ float tensionSource; // Déclarer tensionSource comme variable globale
 // Résistances du pont diviseur
 const float R1 = 47000.0;  // Résistance entre A0 et Vcc
 const float R2 = 10000.0;  // Résistance entre A0 et la masse
-void setup() {
-  Serial.begin(9600);
-  Serial.println("Setup started");
-  // Other setup code...
-}
+
 void resetModule() {
   digitalWrite(RESET_PIN, LOW);
   delay(100); // Attendre que le module soit réinitialisé
