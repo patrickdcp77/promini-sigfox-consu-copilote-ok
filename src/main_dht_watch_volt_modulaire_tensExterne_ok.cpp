@@ -1,7 +1,7 @@
 /*
-dht ok
+dht ok+++
 
-trame reçue ok----
+trame reçue ok
 
 12345678 et mesures au début ok 
 
@@ -53,11 +53,17 @@ float tensionSource; // Déclarer tensionSource comme variable globale
 // Résistances du pont diviseur
 const float R1 = 47000.0;  // Résistance entre A0 et Vcc
 const float R2 = 10000.0;  // Résistance entre A0 et la masse
-void setup() {
-  Serial.begin(9600);
-  Serial.println("Setup started");
-  // Other setup code...
-}
+
+// Prototypes des fonctions
+void resetModule();
+void measureDHT();
+void measureA1Voltage();
+void createFrame(uint8_t* frame);
+void sendFrame(uint8_t* frame);
+void setup();
+void loop();
+ISR(WDT_vect);
+
 void resetModule() {
   digitalWrite(RESET_PIN, LOW);
   delay(100); // Attendre que le module soit réinitialisé
@@ -149,8 +155,16 @@ void sendFrame(uint8_t* frame) {
     }
     Serial.print(frame[i], HEX);
   }
-  Serial.println();
-  delay(100); // Attendre que la trame soit envoyée
+
+}  
+  
+// Interruption du watchdog
+ISR(WDT_vect) {
+  wakeUpCounter++;
+  if (wakeUpCounter >= wakeUpLimit) {
+    wakeUpCounter = 0;
+    shouldMeasure = true;
+  }
 }
 
 void setup() {
@@ -237,11 +251,5 @@ void loop() {
   sleep_disable();
 }
 
-// Interruption du watchdog
-ISR(WDT_vect) {
-  wakeUpCounter++;
-  if (wakeUpCounter >= wakeUpLimit) {
-    wakeUpCounter = 0;
-    shouldMeasure = true;
-  }
-}
+
+
