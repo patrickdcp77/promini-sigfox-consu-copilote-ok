@@ -54,16 +54,6 @@ float tensionSource; // Déclarer tensionSource comme variable globale
 const float R1 = 47000.0;  // Résistance entre A0 et Vcc
 const float R2 = 10000.0;  // Résistance entre A0 et la masse
 
-// Prototypes des fonctions
-void resetModule();
-void measureDHT();
-void measureA1Voltage();
-void createFrame(uint8_t* frame);
-void sendFrame(uint8_t* frame);
-void setup();
-void loop();
-ISR(WDT_vect);
-
 void resetModule() {
   digitalWrite(RESET_PIN, LOW);
   delay(100); // Attendre que le module soit réinitialisé

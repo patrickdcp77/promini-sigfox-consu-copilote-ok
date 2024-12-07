@@ -1,6 +1,6 @@
 /*
 test_avec_A1_niveau_haut et vcc mesuré à 4.14V
-mesure correcte
+mesure correcte**
 */
 
 #include <Adafruit_Sensor.h>
